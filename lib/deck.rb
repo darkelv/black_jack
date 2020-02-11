@@ -13,4 +13,9 @@ class Deck
   def create_deck
     SUITS.map { |suit| FACES.map { |face| Card.new(face, suit) } }.flatten
   end
+
+  def pop
+    reset if cards.empty?
+    @cards.pop
+  end
 end
