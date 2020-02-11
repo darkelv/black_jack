@@ -25,6 +25,10 @@ class Hand
     end
   end
 
+  def show_cards
+    puts cards.map(&:to_s).join(', ')
+  end
+
   def has_ace?
     @num_aces.zero?
   end
