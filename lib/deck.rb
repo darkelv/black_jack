@@ -7,7 +7,7 @@ class Deck
   FACES = [2, 3, 4, 5, 6, 7, 8, 9, 10, "В", "Д", "К", "Т"]
 
   def initialize
-    @cards = create_deck.shuffle!(random: Random.new(1))
+    @cards = create_deck.shuffle!
   end
 
   def create_deck

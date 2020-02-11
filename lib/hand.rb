@@ -30,6 +30,6 @@ class Hand
   end
 
   def has_ace?
-    @num_aces.zero?
+    !@num_aces.zero?
   end
 end
