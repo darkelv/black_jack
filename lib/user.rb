@@ -1,13 +1,9 @@
 class User
   attr_accessor :name, :cards, :cash
 
-  def initialize name, cards, cash = 100
+  def initialize name, cash = 100
     @name = name
     @cash = cash
-    @cards = cards
-  end
-
-  def one_more_card(card)
-    @cards << card
+    @cards = [Hand.new]
   end
 end
