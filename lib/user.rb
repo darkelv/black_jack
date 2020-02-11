@@ -10,4 +10,8 @@ class User
   def reset_hand
     @hand = Hand.new
   end
+
+  def has_cash?
+    !cash.zero?
+  end
 end

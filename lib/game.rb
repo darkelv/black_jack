@@ -23,7 +23,19 @@ class Game
   def prepare_motion
     2.times { dealer.hand.add_card(deck.pop) }
     2.times { user.hand.add_card(deck.pop) }
-    
-    binding.pry
+    bids_up
+  end
+
+  def bids_up
+    if user.has_cash? && dealer.has_cash?
+      user.cash - 10
+      dealer.cash - 10
+      bids = 20
+      binding.pry
+    elsif user.has_cash?
+      puts "Вы победили"
+    else
+      puts "Казино выйграло"
+    end
   end
 end
