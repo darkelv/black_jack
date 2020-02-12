@@ -52,7 +52,7 @@ class Game
     return round_result if user.hand.cards.count == 3 && dealer.hand.cards.count == 3
 
     show_cards
-    choice_list("Пропустить ход", "Добавить карту", "Открыть карты", true )
+    choice_list("Пропустить ход", "Добавить карту", "Открыть карты" )
     input = gets.chomp
     loop do
       case input
@@ -65,8 +65,6 @@ class Game
           user_choice
         when "3"
           round_result
-        when "выход"
-          exit
       end
     end
   end
@@ -88,22 +86,19 @@ class Game
     if dealer.hand.value > user.hand.value && dealer.hand.value <= BLACK_JACK
       dealer.cash = dealer.cash + @bids
       puts "Ставка #{@bids}$ уходит в казино!"
-      prepare_motion
     elsif dealer.hand.value == user.hand.value && user.hand.value <= BLACK_JACK
       puts "Очки равные, все остались при своих!"
       bid = @bids / 2
       dealer.cash = dealer.cash + bid
       user.cash = user.cash + bid
-      prepare_motion
     elsif user.hand.value <= BLACK_JACK
       user.cash = user.cash + @bids
       puts "Вы выйграли #{@bids}$"
-      prepare_motion
     else
       @bids = 0
       "Ставка сгорела)"
-      prepare_motion
     end
+    end_round_menu
   end
 
   def show_money
@@ -121,13 +116,23 @@ class Game
     puts " "
   end
 
-  def choice_list(*options, extra_lines)
+  def end_round_menu
+    choice_list("Продолжить игру", "Завершить игру")
+    input = gets.chomp
+    loop do
+      case input
+        when "1"
+          prepare_motion
+        when "2"
+          exit
+      end
+    end
+  end
+
+  def choice_list(*options)
     puts 'Введите:'
     options.each.with_index(1) do |option, index|
       puts "#{index} - #{option}"
     end
-    return unless extra_lines
-    puts 'выход - для выхода из приложения'
-    print '> '
   end
 end
