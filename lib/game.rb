@@ -62,9 +62,11 @@ class Game
           return dealer_decision if user.hand.cards.count == 3
 
           user.hand.add_card(deck.pop)
-          user_choice
+          dealer_decision
         when "3"
           round_result
+        else
+          input = gets.chomp
       end
     end
   end
@@ -82,7 +84,7 @@ class Game
   def round_result
     blank_line
     dealer.open_hand
-    show_cards
+    show_cards(true)
     if dealer.hand.value > user.hand.value && dealer.hand.value <= BLACK_JACK
       dealer.cash = dealer.cash + @bids
       puts "Ставка #{@bids}$ уходит в казино!"
@@ -94,9 +96,12 @@ class Game
     elsif user.hand.value <= BLACK_JACK
       user.cash = user.cash + @bids
       puts "Вы выйграли #{@bids}$"
+    elsif dealer.hand.value <= BLACK_JACK
+      dealer.cash = dealer.cash + @bids
+      puts "Ставка #{@bids}$ уходит в казино!"
     else
       @bids = 0
-      "Ставка сгорела)"
+      puts "Ставка сгорела)"
     end
     end_round_menu
   end
@@ -105,11 +110,13 @@ class Game
     puts "Ваш баланс #{user.cash}$"
   end
 
-  def show_cards
+  def show_cards(dealer_hand = false)
     puts "Ваши карты"
     user.hand.show_cards
+    puts "Cумма очков #{user.hand.value}"
     puts "Карты диллера"
     dealer.hand.show_cards
+    puts "Cумма очков диллера #{dealer.hand.value}" if dealer_hand
   end
 
   def blank_line
@@ -125,6 +132,8 @@ class Game
           prepare_motion
         when "2"
           exit
+        else
+          input = gets.chomp
       end
     end
   end
