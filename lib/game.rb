@@ -1,6 +1,7 @@
 require_relative 'card'
 require_relative 'deck'
 require_relative 'hand'
+require_relative 'interface'
 require_relative 'user'
 require_relative 'dealer'
 
@@ -16,132 +17,82 @@ class Game
 
   def start_play
     @dealer = Dealer.new
-    puts 'Введите своё имя'
-    name = gets.chomp
+    name = Interface.ask_player_name
     @user = User.new(name)
     prepare_motion
   end
 
   def prepare_motion
-    blank_line
     dealer.reset_hand
     user.reset_hand
     @bids = 0
-    2.times { dealer.hand.add_card(deck.pop) }
+    2.times do
+      dealer.hand.add_card(deck.pop)
+      user.hand.add_card(deck.pop)
+    end
     dealer.close_hand
-    2.times { user.hand.add_card(deck.pop) }
-    show_money
+    Interface.show_money(user.cash)
     bids_up
   end
 
   def bids_up
-    if user.has_cash? && dealer.has_cash?
-      user.cash = user.cash - 10
-      dealer.cash = dealer.cash - 10
-      @bids = 20
-      puts "Банк раунда #{bids}$"
-      user_choice
-    elsif user.has_cash?
-      puts "Вы победили"
-    else
-      puts "Казино выйграло"
-    end
+    return Interface.show_end_game if user.cash.zero? && dealer.cash.zero?
+
+    user.cash = user.cash - 10
+    dealer.cash = dealer.cash - 10
+    @bids = 20
+    Interface.show_bids(@bids)
+    user_choice
   end
 
   def user_choice
-    return round_result if user.hand.cards.count == 3 && dealer.hand.cards.count == 3
+    return calc_result if user.hand.cards.count == 3 && dealer.hand.cards.count == 3
 
-    show_cards
-    choice_list("Пропустить ход", "Добавить карту", "Открыть карты" )
-    input = gets.chomp
+    Interface.show_cards(user, dealer)
+    input = Interface.ask_player_decision
     loop do
-      case input
-        when "1"
-          dealer_decision
-        when "2"
-          return dealer_decision if user.hand.cards.count == 3
-
-          user.hand.add_card(deck.pop)
-          dealer_decision
-        when "3"
-          round_result
-        else
-          input = gets.chomp
-      end
+      break if input != 1
+      user.hand.add_card(deck.pop)
     end
+    dealer_decision
   end
 
   def dealer_decision
-    if dealer.hand.value < 17 && dealer.hand.cards.count < 3
+    loop do
+      break if dealer.hand.value >= 17 || dealer.hand.cards.count >= 3
+
       dealer.hand.add_card(deck.pop)
       dealer.close_hand
-      user_choice
-    else
-      round_result
     end
+    calc_result
   end
 
-  def round_result
-    blank_line
+  def calc_result
     dealer.open_hand
-    show_cards(true)
-    if dealer.hand.value > user.hand.value && dealer.hand.value <= BLACK_JACK
+    if dealer.hand.value > 21
+      result = :player_wins
+      user.cash = user.cash + @bids
+    end
+
+    delta = user.hand.value - dealer.hand.value
+    if delta > 0
+      result = :player_wins
       dealer.cash = dealer.cash + @bids
-      puts "Ставка #{@bids}$ уходит в казино!"
-    elsif dealer.hand.value == user.hand.value && user.hand.value <= BLACK_JACK
-      puts "Очки равные, все остались при своих!"
+    elsif delta == 0
+      result = :draw
       bid = @bids / 2
       dealer.cash = dealer.cash + bid
       user.cash = user.cash + bid
-    elsif user.hand.value <= BLACK_JACK
-      user.cash = user.cash + @bids
-      puts "Вы выйграли #{@bids}$"
-    elsif dealer.hand.value <= BLACK_JACK
+    elsif delta < 0
+      result = :dealer_wins
       dealer.cash = dealer.cash + @bids
-      puts "Ставка #{@bids}$ уходит в казино!"
-    else
-      @bids = 0
-      puts "Ставка сгорела)"
     end
-    end_round_menu
-  end
+    Interface.show_cards(user, dealer, true)
+    Interface.show_round_result(result)
 
-  def show_money
-    puts "Ваш баланс #{user.cash}$"
-  end
+    user_ask = Interface.end_round_question
+    return  prepare_motion if user_ask == 1
 
-  def show_cards(dealer_hand = false)
-    puts "Ваши карты"
-    user.hand.show_cards
-    puts "Cумма очков #{user.hand.value}"
-    puts "Карты диллера"
-    dealer.hand.show_cards
-    puts "Cумма очков диллера #{dealer.hand.value}" if dealer_hand
-  end
-
-  def blank_line
-    puts " "
-  end
-
-  def end_round_menu
-    choice_list("Продолжить игру", "Завершить игру")
-    input = gets.chomp
-    loop do
-      case input
-        when "1"
-          prepare_motion
-        when "2"
-          exit
-        else
-          input = gets.chomp
-      end
-    end
-  end
-
-  def choice_list(*options)
-    puts 'Введите:'
-    options.each.with_index(1) do |option, index|
-      puts "#{index} - #{option}"
-    end
+    exit
   end
 end
